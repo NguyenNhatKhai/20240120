@@ -1,0 +1,16 @@
+../Core/Src/arm.c:12:6:armInit	16	static
+../Core/Src/arm.c:23:9:armStart	24	static
+../Core/Src/arm.c:37:6:armRun	24	static
+../Core/Src/arm.c:51:6:armGrip	40	static
+../Core/Src/arm.c:62:6:armRotate	32	static
+../Core/Src/arm.c:73:6:armMove	40	static
+../Core/Src/arm.c:85:6:armHold	24	static
+../Core/Src/arm.c:91:6:armRelease	24	static
+../Core/Src/arm.c:97:6:armRelax	24	static
+../Core/Src/arm.c:103:6:armWestward	24	static
+../Core/Src/arm.c:109:6:armNorthwest	24	static
+../Core/Src/arm.c:115:6:armNorthward	24	static
+../Core/Src/arm.c:121:6:armNortheast	24	static
+../Core/Src/arm.c:127:6:armEastward	24	static
+../Core/Src/arm.c:133:6:armForward	24	static
+../Core/Src/arm.c:139:6:armBackward	24	static

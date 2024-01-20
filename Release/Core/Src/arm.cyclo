@@ -1,0 +1,16 @@
+../Core/Src/arm.c:12:6:armInit	2
+../Core/Src/arm.c:23:9:armStart	5
+../Core/Src/arm.c:51:6:armGrip	4
+../Core/Src/arm.c:62:6:armRotate	4
+../Core/Src/arm.c:73:6:armMove	4
+../Core/Src/arm.c:37:6:armRun	5
+../Core/Src/arm.c:85:6:armHold	1
+../Core/Src/arm.c:91:6:armRelease	1
+../Core/Src/arm.c:97:6:armRelax	1
+../Core/Src/arm.c:103:6:armWestward	1
+../Core/Src/arm.c:109:6:armNorthwest	1
+../Core/Src/arm.c:115:6:armNorthward	1
+../Core/Src/arm.c:121:6:armNortheast	1
+../Core/Src/arm.c:127:6:armEastward	1
+../Core/Src/arm.c:133:6:armForward	1
+../Core/Src/arm.c:139:6:armBackward	1
