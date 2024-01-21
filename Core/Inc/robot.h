@@ -26,6 +26,8 @@ typedef struct {
 typedef struct {
 	uint8_t firstArmID;
 	uint8_t secondArmID;
+	uint8_t thirdArmID;
+	uint8_t fourthArmID;
 } robotFlippingArm;
 
 void robotInit(void);

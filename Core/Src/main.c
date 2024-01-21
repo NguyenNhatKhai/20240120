@@ -121,11 +121,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   schedulerInit();
   robotInit();
-//  schedulerAddTask(robotBoot, NULL, 1000, 0);
-//  schedulerAddTask(robotMoveLeftNormal, NULL, 10000, 10000);
-//  schedulerAddTask(robotMoveRightNormal, NULL, 20000, 0);
+//  schedulerAddTask(servoRun, NULL, 1000, 0);
+  schedulerAddTask(robotBoot, NULL, 1000, 0);
+  schedulerAddTask(robotFlipXNormal, NULL, 20000, 20000);
+//  schedulerAddTask(robotMoveFrontNormal, NULL, 10000, 10000);
+//  schedulerAddTask(robotMoveRightNormal, NULL, 20000, 20000);
 //  schedulerAddTask(robotMoveFrontDouble, NULL, 30000, 0);
-  schedulerAddTask(robotTest, NULL, 1000, 1000);
+//  schedulerAddTask(robotTest, NULL, 1000, 0);
   while (1)
   {
     /* USER CODE END WHILE */

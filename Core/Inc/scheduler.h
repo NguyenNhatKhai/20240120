@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "main.h"
 
-#define SCHEDULER_NUMBER 20
+#define SCHEDULER_NUMBER 32
 #define SCHEDULER_TICK 1				// in milliseconds
 
 typedef struct {

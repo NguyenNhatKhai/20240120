@@ -36,6 +36,8 @@ void robotFree(void *) {
 	movingArm.armID = ARM_UNDEFINED;
 	flippingArm.firstArmID = ARM_UNDEFINED;
 	flippingArm.secondArmID = ARM_UNDEFINED;
+	flippingArm.thirdArmID = ARM_UNDEFINED;
+	flippingArm.fourthArmID = ARM_UNDEFINED;
 }
 
 void robotInit(void) {
@@ -43,6 +45,8 @@ void robotInit(void) {
 	movingArm.armID = ARM_UNDEFINED;
 	flippingArm.firstArmID = ARM_UNDEFINED;
 	flippingArm.secondArmID = ARM_UNDEFINED;
+	flippingArm.thirdArmID = ARM_UNDEFINED;
+	flippingArm.fourthArmID = ARM_UNDEFINED;
 
 	servoInit();
 	armInit();
@@ -50,12 +54,12 @@ void robotInit(void) {
 	leftGripper = servoStart(&htim2, TIM_CHANNEL_1, 0);
 	frontGripper = servoStart(&htim2, TIM_CHANNEL_2, 0);
 	rightGripper = servoStart(&htim2, TIM_CHANNEL_3, 0);
-	backGripper = servoStart(&htim2, TIM_CHANNEL_4, 0);
+	backGripper = servoStart(&htim2, TIM_CHANNEL_4, -7);
 
-	leftWrist = servoStart(&htim3, TIM_CHANNEL_1, 0);
+	leftWrist = servoStart(&htim3, TIM_CHANNEL_1, -5);
 	frontWrist = servoStart(&htim3, TIM_CHANNEL_2, 0);
 	rightWrist = servoStart(&htim3, TIM_CHANNEL_3, 0);
-	backWrist = servoStart(&htim3, TIM_CHANNEL_4, 0);
+	backWrist = servoStart(&htim3, TIM_CHANNEL_4, -5);
 
 	leftElbow = servoStart(&htim4, TIM_CHANNEL_1, 0);
 	frontElbow = servoStart(&htim4, TIM_CHANNEL_2, 0);
@@ -71,15 +75,16 @@ void robotInit(void) {
 void robotBoot(void *) {
 	schedulerAddTask(servoRun, NULL, 1000, 0);
 	schedulerAddTask(armRun, NULL, 2000, 0);
-	schedulerAddTask(armHold, &arms[rightArm], 3000, 0);
-	schedulerAddTask(armForward, &arms[leftArm], 4000, 0);
-	schedulerAddTask(armForward, &arms[frontArm], 4000, 0);
-	schedulerAddTask(armForward, &arms[rightArm], 4000, 0);
-	schedulerAddTask(armForward, &arms[backArm], 4000, 0);
-	schedulerAddTask(armHold, &arms[leftArm], 5000, 0);
-	schedulerAddTask(armHold, &arms[frontArm], 5000, 0);
-	schedulerAddTask(armHold, &arms[backArm], 5000, 0);
-	schedulerAddTask(robotFree, NULL, 6000, 0);
+	schedulerAddTask(armRelease, &arms[rightArm], 5000, 0);
+	schedulerAddTask(armHold, &arms[rightArm], 7000, 0);
+	schedulerAddTask(armForward, &arms[rightArm], 9000, 0);
+	schedulerAddTask(armForward, &arms[leftArm], 11000, 0);
+	schedulerAddTask(armForward, &arms[frontArm], 13000, 0);
+	schedulerAddTask(armForward, &arms[backArm], 13000, 0);
+	schedulerAddTask(armHold, &arms[leftArm], 15000, 0);
+	schedulerAddTask(armHold, &arms[frontArm], 15000, 0);
+	schedulerAddTask(armHold, &arms[backArm], 15000, 0);
+	schedulerAddTask(robotFree, NULL, 16000, 0);
 }
 
 void robotMoveReturn(void *) {
@@ -177,23 +182,71 @@ void robotMoveBackDouble(void *) {
 	schedulerAddTask(robotMoveDouble, NULL, 1000, 0);
 }
 
-uint8_t i = 0;
+void robotFlipXNormal(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+
+	schedulerAddTask(armRelease, &arms[frontArm], 1000, 0);
+	schedulerAddTask(armRelease, &arms[backArm], 1010, 0);
+	schedulerAddTask(armBackward, &arms[frontArm], 2000, 0);
+	schedulerAddTask(armBackward, &arms[backArm], 2010, 0);
+
+	schedulerAddTask(armEastward, &arms[leftArm], 3000, 0);
+	schedulerAddTask(armWestward, &arms[rightArm], 3010, 0);
+
+	schedulerAddTask(armForward, &arms[frontArm], 4000, 0);
+	schedulerAddTask(armForward, &arms[backArm], 4010, 0);
+	schedulerAddTask(armHold, &arms[frontArm], 5000, 0);
+	schedulerAddTask(armHold, &arms[backArm], 5010, 0);
+
+	schedulerAddTask(armRelease, &arms[leftArm], 6000, 0);
+	schedulerAddTask(armRelease, &arms[rightArm], 6010, 0);
+	schedulerAddTask(armBackward, &arms[leftArm], 7000, 0);
+	schedulerAddTask(armBackward, &arms[rightArm], 7010, 0);
+
+	schedulerAddTask(armNorthward, &arms[leftArm], 8000, 0);
+	schedulerAddTask(armNorthward, &arms[rightArm], 8010, 0);
+
+	schedulerAddTask(armForward, &arms[leftArm], 9000, 0);
+	schedulerAddTask(armForward, &arms[rightArm], 9010, 0);
+	schedulerAddTask(armHold, &arms[leftArm], 10000, 0);
+	schedulerAddTask(armHold, &arms[rightArm], 10010, 0);
+
+	schedulerAddTask(robotFree, NULL, 11000, 0);
+}
+
+//uint8_t i = 0;
+//void robotTest(void *) {
+//	uint8_t j = leftWrist;
+//	if (i == 0) {
+//		servos[j].target = 0;
+//		i = 1;
+//	}
+//	else if (i == 1) {
+//		servos[j].target = 90;
+//		i = 2;
+//	}
+//	else if (i == 2) {
+//		servos[j].target = 180;
+//		i = 0;
+//	}
+//	else {
+//		i = 0;
+//	}
+//	schedulerAddTask(servoRotate, &servos[j], 0, 0);
+//}
+
 void robotTest(void *) {
-	uint8_t j = leftGripper;
-	if (i == 0) {
-		servos[j].target = 0;
-		i = 1;
-	}
-	else if (i == 1) {
-		servos[j].target = 90;
-		i = 2;
-	}
-	else if (i == 2) {
-		servos[j].target = 0;
-		i = 0;
-	}
-	else {
-		i = 0;
-	}
-	schedulerAddTask(servoRotate, &servos[j], 0, 0);
+	armHold(&arms[leftArm]);
+	armHold(&arms[frontArm]);
+	armHold(&arms[rightArm]);
+	armHold(&arms[backArm]);
+	armNorthward(&arms[leftArm]);
+	armNorthward(&arms[frontArm]);
+	armNorthward(&arms[rightArm]);
+	armNorthward(&arms[backArm]);
+	armForward(&arms[leftArm]);
+	armForward(&arms[frontArm]);
+	armForward(&arms[rightArm]);
+	armForward(&arms[backArm]);
 }
