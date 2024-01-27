@@ -141,3 +141,9 @@ void armBackward(void *armPointer) {
 	newArmPointer->location = ARM_BACKWARD;
 	armMove(newArmPointer);
 }
+
+void armFirstLayer(void *armPointer) {
+	arm *newArmPointer = (arm *)armPointer;
+	newArmPointer->location = ARM_FIRSTLAYER;
+	armMove(newArmPointer);
+}

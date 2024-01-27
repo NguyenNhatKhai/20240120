@@ -45,7 +45,7 @@ void servoRotate(void *servoPointer) {
 	if (newServoPointer->timer == NULL) return;
 	if (newServoPointer->target < 0) newServoPointer->target = 0;
 	else if (newServoPointer->target > 180) newServoPointer->target = 180;
-	uint32_t newValue = (newServoPointer->timer->Instance->ARR + 1) / SERVO_PERIOD * (SERVO_MINIMUM + (SERVO_MAXIMUM - SERVO_MINIMUM) * (newServoPointer->target + newServoPointer->offset) / 180);
+	uint32_t newValue = (newServoPointer->timer->Instance->ARR + 1) / (1.0 * SERVO_PERIOD) * (SERVO_MINIMUM + (SERVO_MAXIMUM - SERVO_MINIMUM) * (newServoPointer->target + newServoPointer->offset) / 180.0);
 //	newValue = newServoPointer->timer->Instance->ARR - newValue;
 	__HAL_TIM_SET_COMPARE(newServoPointer->timer, newServoPointer->channel, newValue);
 }

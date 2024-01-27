@@ -11,7 +11,15 @@
 #include "main.h"
 #include "scheduler.h"
 #include "arm.h"
-#include "servo.h"
+
+#define ROBOT_MANUALDURATION 2999
+#define ROBOT_AUTODURATION 499
+
+#define ROBOT_BOOT (9 * ROBOT_MANUALDURATION)
+#define ROBOT_TURNSINGLE (10 * ROBOT_AUTODURATION)
+#define ROBOT_TURNDOUBLE (12 * ROBOT_AUTODURATION)
+#define ROBOT_FLIPSINGLE (11 * ROBOT_AUTODURATION)
+#define ROBOT_FLIPDOUBLE (16 * ROBOT_AUTODURATION)
 
 typedef enum {
 	INIT,
@@ -21,7 +29,7 @@ typedef enum {
 
 typedef struct {
 	uint8_t armID;
-} robotMovingArm;
+} robotTurningArm;
 
 typedef struct {
 	uint8_t firstArmID;
@@ -33,19 +41,20 @@ typedef struct {
 void robotInit(void);
 
 void robotBoot(void *);
+void robotShutDown(void *);
 
-void robotMoveLeftNormal(void *);
-void robotMoveLeftInvert(void *);
-void robotMoveLeftDouble(void *);
-void robotMoveFrontNormal(void *);
-void robotMoveFrontInvert(void *);
-void robotMoveFrontDouble(void *);
-void robotMoveRightNormal(void *);
-void robotMoveRightInvert(void *);
-void robotMoveRightDouble(void *);
-void robotMoveBackNormal(void *);
-void robotMoveBackInvert(void *);
-void robotMoveBackDouble(void *);
+void robotTurnLeftNormal(void *);
+void robotTurnLeftInvert(void *);
+void robotTurnLeftDouble(void *);
+void robotTurnFrontNormal(void *);
+void robotTurnFrontInvert(void *);
+void robotTurnFrontDouble(void *);
+void robotTurnRightNormal(void *);
+void robotTurnRightInvert(void *);
+void robotTurnRightDouble(void *);
+void robotTurnBackNormal(void *);
+void robotTurnBackInvert(void *);
+void robotTurnBackDouble(void *);
 
 void robotFlipXNormal(void *);
 void robotFlipXInvert(void *);

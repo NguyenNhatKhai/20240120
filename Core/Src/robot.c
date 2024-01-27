@@ -7,33 +7,18 @@
 
 #include "robot.h"
 
-static uint8_t leftGripper = SERVO_UNDEFINED;
-static uint8_t frontGripper = SERVO_UNDEFINED;
-static uint8_t rightGripper = SERVO_UNDEFINED;
-static uint8_t backGripper = SERVO_UNDEFINED;
-
-static uint8_t leftWrist = SERVO_UNDEFINED;
-static uint8_t frontWrist = SERVO_UNDEFINED;
-static uint8_t rightWrist = SERVO_UNDEFINED;
-static uint8_t backWrist = SERVO_UNDEFINED;
-
-static uint8_t leftElbow = SERVO_UNDEFINED;
-static uint8_t frontElbow = SERVO_UNDEFINED;
-static uint8_t rightElbow = SERVO_UNDEFINED;
-static uint8_t backElbow = SERVO_UNDEFINED;
-
 static uint8_t leftArm = ARM_UNDEFINED;
 static uint8_t frontArm = ARM_UNDEFINED;
 static uint8_t rightArm = ARM_UNDEFINED;
 static uint8_t backArm = ARM_UNDEFINED;
 
 static robotState state;
-static robotMovingArm movingArm;
+static robotTurningArm turningArm;
 static robotFlippingArm flippingArm;
 
 void robotFree(void *) {
 	state = FREE;
-	movingArm.armID = ARM_UNDEFINED;
+	turningArm.armID = ARM_UNDEFINED;
 	flippingArm.firstArmID = ARM_UNDEFINED;
 	flippingArm.secondArmID = ARM_UNDEFINED;
 	flippingArm.thirdArmID = ARM_UNDEFINED;
@@ -42,7 +27,7 @@ void robotFree(void *) {
 
 void robotInit(void) {
 	state = INIT;
-	movingArm.armID = ARM_UNDEFINED;
+	turningArm.armID = ARM_UNDEFINED;
 	flippingArm.firstArmID = ARM_UNDEFINED;
 	flippingArm.secondArmID = ARM_UNDEFINED;
 	flippingArm.thirdArmID = ARM_UNDEFINED;
@@ -51,20 +36,20 @@ void robotInit(void) {
 	servoInit();
 	armInit();
 
-	leftGripper = servoStart(&htim2, TIM_CHANNEL_1, 0);
-	frontGripper = servoStart(&htim2, TIM_CHANNEL_2, 0);
-	rightGripper = servoStart(&htim2, TIM_CHANNEL_3, 0);
-	backGripper = servoStart(&htim2, TIM_CHANNEL_4, -7);
+	uint8_t leftGripper = servoStart(&htim2, TIM_CHANNEL_1, 0);
+	uint8_t frontGripper = servoStart(&htim2, TIM_CHANNEL_2, 0);
+	uint8_t rightGripper = servoStart(&htim2, TIM_CHANNEL_3, -5);
+	uint8_t backGripper = servoStart(&htim2, TIM_CHANNEL_4, 0);
 
-	leftWrist = servoStart(&htim3, TIM_CHANNEL_1, -5);
-	frontWrist = servoStart(&htim3, TIM_CHANNEL_2, 0);
-	rightWrist = servoStart(&htim3, TIM_CHANNEL_3, 0);
-	backWrist = servoStart(&htim3, TIM_CHANNEL_4, -5);
+	uint8_t leftWrist = servoStart(&htim3, TIM_CHANNEL_1, -5);
+	uint8_t frontWrist = servoStart(&htim3, TIM_CHANNEL_2, 0);
+	uint8_t rightWrist = servoStart(&htim3, TIM_CHANNEL_3, -4);
+	uint8_t backWrist = servoStart(&htim3, TIM_CHANNEL_4, 2);
 
-	leftElbow = servoStart(&htim4, TIM_CHANNEL_1, 0);
-	frontElbow = servoStart(&htim4, TIM_CHANNEL_2, 0);
-	rightElbow = servoStart(&htim4, TIM_CHANNEL_3, 0);
-	backElbow = servoStart(&htim4, TIM_CHANNEL_4, 0);
+	uint8_t leftElbow = servoStart(&htim4, TIM_CHANNEL_1, 0);
+	uint8_t frontElbow = servoStart(&htim4, TIM_CHANNEL_2, 0);
+	uint8_t rightElbow = servoStart(&htim4, TIM_CHANNEL_3, 0);
+	uint8_t backElbow = servoStart(&htim4, TIM_CHANNEL_4, 10);
 
 	leftArm = armStart(leftGripper, leftWrist, leftElbow);
 	frontArm = armStart(frontGripper, frontWrist, frontElbow);
@@ -73,180 +58,272 @@ void robotInit(void) {
 }
 
 void robotBoot(void *) {
-	schedulerAddTask(servoRun, NULL, 1000, 0);
-	schedulerAddTask(armRun, NULL, 2000, 0);
-	schedulerAddTask(armRelease, &arms[rightArm], 5000, 0);
-	schedulerAddTask(armHold, &arms[rightArm], 7000, 0);
-	schedulerAddTask(armForward, &arms[rightArm], 9000, 0);
-	schedulerAddTask(armForward, &arms[leftArm], 11000, 0);
-	schedulerAddTask(armForward, &arms[frontArm], 13000, 0);
-	schedulerAddTask(armForward, &arms[backArm], 13000, 0);
-	schedulerAddTask(armHold, &arms[leftArm], 15000, 0);
-	schedulerAddTask(armHold, &arms[frontArm], 15000, 0);
-	schedulerAddTask(armHold, &arms[backArm], 15000, 0);
-	schedulerAddTask(robotFree, NULL, 16000, 0);
+	schedulerAddTask(armRun, NULL, 1 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armRelease, &arms[rightArm], 2 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armHold, &arms[rightArm], 3 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armForward, &arms[rightArm], 4 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armForward, &arms[leftArm], 5 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armForward, &arms[frontArm], 6 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armForward, &arms[backArm], 6 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armHold, &arms[leftArm], 7 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armHold, &arms[frontArm], 7 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(armHold, &arms[backArm], 7 * ROBOT_MANUALDURATION, 0);
+	schedulerAddTask(robotFree, NULL, 8 * ROBOT_MANUALDURATION, 0);
 }
 
-void robotMoveReturn(void *) {
-	schedulerAddTask(armRelease, &arms[movingArm.armID], 1000, 0);
-	schedulerAddTask(armBackward, &arms[movingArm.armID], 2000, 0);
-	schedulerAddTask(armNorthward, &arms[movingArm.armID], 3000, 0);
-	schedulerAddTask(armForward, &arms[movingArm.armID], 4000, 0);
-	schedulerAddTask(armHold, &arms[movingArm.armID], 5000, 0);
-	schedulerAddTask(robotFree, NULL, 6000, 0);
+void robotShutDown(void *) {
+	schedulerAddTask(armRelease, &arms[leftArm], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelease, &arms[frontArm], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelease, &arms[rightArm], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelease, &arms[backArm], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[leftArm], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[frontArm], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[rightArm], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[backArm], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armNorthward, &arms[leftArm], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armNorthward, &arms[frontArm], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armNorthward, &arms[rightArm], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armNorthward, &arms[backArm], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelax, &arms[leftArm], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelax, &arms[frontArm], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelax, &arms[rightArm], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelax, &arms[backArm], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(robotFree, NULL, 4 * ROBOT_AUTODURATION, 0);
 }
 
-void robotMoveNormal(void *) {
+void robotTurnReturn(void *) {
+	schedulerAddTask(armRelease, &arms[turningArm.armID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[turningArm.armID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armNorthward, &arms[turningArm.armID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[turningArm.armID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[turningArm.armID], 4 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(robotFree, NULL, 5 * ROBOT_AUTODURATION, 0);
+}
+
+void robotTurnNormal(void *) {
+	schedulerAddTask(armRelease, &arms[turningArm.armID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armFirstLayer, &arms[turningArm.armID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[turningArm.armID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armWestward, &arms[turningArm.armID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(robotTurnReturn, NULL, 4 * ROBOT_AUTODURATION, 0);
+}
+
+void robotTurnInvert(void *) {
+	schedulerAddTask(armRelease, &arms[turningArm.armID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armFirstLayer, &arms[turningArm.armID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[turningArm.armID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armEastward, &arms[turningArm.armID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(robotTurnReturn, NULL, 4 * ROBOT_AUTODURATION, 0);
+}
+
+void robotTurnDouble(void *) {
+	schedulerAddTask(armRelease, &arms[turningArm.armID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[turningArm.armID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armWestward, &arms[turningArm.armID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armFirstLayer, &arms[turningArm.armID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[turningArm.armID], 4 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armEastward, &arms[turningArm.armID], 5 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(robotTurnReturn, NULL, 6 * ROBOT_AUTODURATION, 0);
+}
+
+void robotTurnLeftNormal(void *) {
 	if (state != FREE) return;
 	state = BUSY;
-	schedulerAddTask(armEastward, &arms[movingArm.armID], 1000, 0);
-	schedulerAddTask(robotMoveReturn, NULL, 2000, 0);
+	turningArm.armID = leftArm;
+	robotTurnNormal(NULL);
 }
 
-void robotMoveInvert(void *) {
+void robotTurnLeftInvert(void *) {
 	if (state != FREE) return;
 	state = BUSY;
-	schedulerAddTask(armWestward, &arms[movingArm.armID], 1000, 0);
-	schedulerAddTask(robotMoveReturn, NULL, 2000, 0);
+	turningArm.armID = leftArm;
+	robotTurnInvert(NULL);
 }
 
-void robotMoveDouble(void *) {
+void robotTurnLeftDouble(void *) {
 	if (state != FREE) return;
 	state = BUSY;
-	schedulerAddTask(armRelease, &arms[movingArm.armID], 1000, 0);
-	schedulerAddTask(armBackward, &arms[movingArm.armID], 2000, 0);
-	schedulerAddTask(armEastward, &arms[movingArm.armID], 3000, 0);
-	schedulerAddTask(armForward, &arms[movingArm.armID], 4000, 0);
-	schedulerAddTask(armHold, &arms[movingArm.armID], 5000, 0);
-	schedulerAddTask(armWestward, &arms[movingArm.armID], 6000, 0);
-	schedulerAddTask(robotMoveReturn, NULL, 7000, 0);
+	turningArm.armID = leftArm;
+	robotTurnDouble(NULL);
 }
 
-void robotMoveLeftNormal(void *) {
-	movingArm.armID = leftArm;
-	schedulerAddTask(robotMoveNormal, NULL, 1000, 0);
+void robotTurnFrontNormal(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = frontArm;
+	robotTurnNormal(NULL);
 }
 
-void robotMoveLeftInvert(void *) {
-	movingArm.armID = leftArm;
-	schedulerAddTask(robotMoveInvert, NULL, 1000, 0);
+void robotTurnFrontInvert(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = frontArm;
+	robotTurnInvert(NULL);
 }
 
-void robotMoveLeftDouble(void *) {
-	movingArm.armID = leftArm;
-	schedulerAddTask(robotMoveDouble, NULL, 1000, 0);
+void robotTurnFrontDouble(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = frontArm;
+	robotTurnDouble(NULL);
 }
 
-void robotMoveFrontNormal(void *) {
-	movingArm.armID = frontArm;
-	schedulerAddTask(robotMoveNormal, NULL, 1000, 0);
+void robotTurnRightNormal(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = rightArm;
+	robotTurnNormal(NULL);
 }
 
-void robotMoveFrontInvert(void *) {
-	movingArm.armID = frontArm;
-	schedulerAddTask(robotMoveInvert, NULL, 1000, 0);
+void robotTurnRightInvert(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = rightArm;
+	robotTurnInvert(NULL);
 }
 
-void robotMoveFrontDouble(void *) {
-	movingArm.armID = frontArm;
-	schedulerAddTask(robotMoveDouble, NULL, 1000, 0);
+void robotTurnRightDouble(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = rightArm;
+	robotTurnDouble(NULL);
 }
 
-void robotMoveRightNormal(void *) {
-	movingArm.armID = rightArm;
-	schedulerAddTask(robotMoveNormal, NULL, 1000, 0);
+void robotTurnBackNormal(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = backArm;
+	robotTurnNormal(NULL);
 }
 
-void robotMoveRightInvert(void *) {
-	movingArm.armID = rightArm;
-	schedulerAddTask(robotMoveInvert, NULL, 1000, 0);
+void robotTurnBackInvert(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = backArm;
+	robotTurnInvert(NULL);
 }
 
-void robotMoveRightDouble(void *) {
-	movingArm.armID = rightArm;
-	schedulerAddTask(robotMoveDouble, NULL, 1000, 0);
+void robotTurnBackDouble(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	turningArm.armID = backArm;
+	robotTurnDouble(NULL);
 }
 
-void robotMoveBackNormal(void *) {
-	movingArm.armID = backArm;
-	schedulerAddTask(robotMoveNormal, NULL, 1000, 0);
+void robotFlipReturn(void *) {
+	schedulerAddTask(armRelease, &arms[flippingArm.firstArmID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelease, &arms[flippingArm.secondArmID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[flippingArm.firstArmID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[flippingArm.secondArmID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armNorthward, &arms[flippingArm.firstArmID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armNorthward, &arms[flippingArm.secondArmID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[flippingArm.firstArmID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[flippingArm.secondArmID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[flippingArm.firstArmID], 4 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[flippingArm.secondArmID], 4 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(robotFree, NULL, 5 * ROBOT_AUTODURATION, 0);
 }
 
-void robotMoveBackInvert(void *) {
-	movingArm.armID = backArm;
-	schedulerAddTask(robotMoveInvert, NULL, 1000, 0);
+void robotFlipSingle(void *) {
+	schedulerAddTask(armRelease, &arms[flippingArm.thirdArmID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelease, &arms[flippingArm.fourthArmID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[flippingArm.thirdArmID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[flippingArm.fourthArmID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armEastward, &arms[flippingArm.firstArmID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armWestward, &arms[flippingArm.secondArmID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[flippingArm.thirdArmID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[flippingArm.fourthArmID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[flippingArm.thirdArmID], 4 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[flippingArm.fourthArmID], 4 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(robotFlipReturn, NULL, 5 * ROBOT_AUTODURATION, 0);
 }
 
-void robotMoveBackDouble(void *) {
-	movingArm.armID = backArm;
-	schedulerAddTask(robotMoveDouble, NULL, 1000, 0);
+void robotFlipDouble(void *) {
+	schedulerAddTask(armRelease, &arms[flippingArm.firstArmID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelease, &arms[flippingArm.secondArmID], 0 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[flippingArm.firstArmID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[flippingArm.secondArmID], 1 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armWestward, &arms[flippingArm.firstArmID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armEastward, &arms[flippingArm.secondArmID], 2 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[flippingArm.firstArmID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[flippingArm.secondArmID], 3 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[flippingArm.firstArmID], 4 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[flippingArm.secondArmID], 4 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelease, &arms[flippingArm.thirdArmID], 5 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armRelease, &arms[flippingArm.fourthArmID], 5 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[flippingArm.thirdArmID], 6 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armBackward, &arms[flippingArm.fourthArmID], 6 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armEastward, &arms[flippingArm.firstArmID], 7 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armWestward, &arms[flippingArm.secondArmID], 7 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[flippingArm.thirdArmID], 8 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armForward, &arms[flippingArm.fourthArmID], 8 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[flippingArm.thirdArmID], 9 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(armHold, &arms[flippingArm.fourthArmID], 9 * ROBOT_AUTODURATION, 0);
+	schedulerAddTask(robotFlipReturn, NULL, 10 * ROBOT_AUTODURATION, 0);
 }
 
 void robotFlipXNormal(void *) {
 	if (state != FREE) return;
 	state = BUSY;
-
-	schedulerAddTask(armRelease, &arms[frontArm], 1000, 0);
-	schedulerAddTask(armRelease, &arms[backArm], 1010, 0);
-	schedulerAddTask(armBackward, &arms[frontArm], 2000, 0);
-	schedulerAddTask(armBackward, &arms[backArm], 2010, 0);
-
-	schedulerAddTask(armEastward, &arms[leftArm], 3000, 0);
-	schedulerAddTask(armWestward, &arms[rightArm], 3010, 0);
-
-	schedulerAddTask(armForward, &arms[frontArm], 4000, 0);
-	schedulerAddTask(armForward, &arms[backArm], 4010, 0);
-	schedulerAddTask(armHold, &arms[frontArm], 5000, 0);
-	schedulerAddTask(armHold, &arms[backArm], 5010, 0);
-
-	schedulerAddTask(armRelease, &arms[leftArm], 6000, 0);
-	schedulerAddTask(armRelease, &arms[rightArm], 6010, 0);
-	schedulerAddTask(armBackward, &arms[leftArm], 7000, 0);
-	schedulerAddTask(armBackward, &arms[rightArm], 7010, 0);
-
-	schedulerAddTask(armNorthward, &arms[leftArm], 8000, 0);
-	schedulerAddTask(armNorthward, &arms[rightArm], 8010, 0);
-
-	schedulerAddTask(armForward, &arms[leftArm], 9000, 0);
-	schedulerAddTask(armForward, &arms[rightArm], 9010, 0);
-	schedulerAddTask(armHold, &arms[leftArm], 10000, 0);
-	schedulerAddTask(armHold, &arms[rightArm], 10010, 0);
-
-	schedulerAddTask(robotFree, NULL, 11000, 0);
+	flippingArm.firstArmID = rightArm;
+	flippingArm.secondArmID = leftArm;
+	flippingArm.thirdArmID = frontArm;
+	flippingArm.fourthArmID = backArm;
+	robotFlipSingle(NULL);
 }
 
-//uint8_t i = 0;
-//void robotTest(void *) {
-//	uint8_t j = leftWrist;
-//	if (i == 0) {
-//		servos[j].target = 0;
-//		i = 1;
-//	}
-//	else if (i == 1) {
-//		servos[j].target = 90;
-//		i = 2;
-//	}
-//	else if (i == 2) {
-//		servos[j].target = 180;
-//		i = 0;
-//	}
-//	else {
-//		i = 0;
-//	}
-//	schedulerAddTask(servoRotate, &servos[j], 0, 0);
-//}
+void robotFlipXInvert(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	flippingArm.firstArmID = leftArm;
+	flippingArm.secondArmID = rightArm;
+	flippingArm.thirdArmID = frontArm;
+	flippingArm.fourthArmID = backArm;
+	robotFlipSingle(NULL);
+}
+
+void robotFlipXDouble(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	flippingArm.firstArmID = rightArm;
+	flippingArm.secondArmID = leftArm;
+	flippingArm.thirdArmID = frontArm;
+	flippingArm.fourthArmID = backArm;
+	robotFlipDouble(NULL);
+}
+
+void robotFlipZNormal(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	flippingArm.firstArmID = frontArm;
+	flippingArm.secondArmID = backArm;
+	flippingArm.thirdArmID = leftArm;
+	flippingArm.fourthArmID = rightArm;
+	robotFlipSingle(NULL);
+}
+
+void robotFlipZInvert(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	flippingArm.firstArmID = backArm;
+	flippingArm.secondArmID = frontArm;
+	flippingArm.thirdArmID = leftArm;
+	flippingArm.fourthArmID = rightArm;
+	robotFlipSingle(NULL);
+}
+
+void robotFlipZDouble(void *) {
+	if (state != FREE) return;
+	state = BUSY;
+	flippingArm.firstArmID = frontArm;
+	flippingArm.secondArmID = backArm;
+	flippingArm.thirdArmID = leftArm;
+	flippingArm.fourthArmID = rightArm;
+	robotFlipDouble(NULL);
+}
 
 void robotTest(void *) {
-	armHold(&arms[leftArm]);
-	armHold(&arms[frontArm]);
-	armHold(&arms[rightArm]);
-	armHold(&arms[backArm]);
-	armNorthward(&arms[leftArm]);
-	armNorthward(&arms[frontArm]);
-	armNorthward(&arms[rightArm]);
-	armNorthward(&arms[backArm]);
-	armForward(&arms[leftArm]);
-	armForward(&arms[frontArm]);
-	armForward(&arms[rightArm]);
-	armForward(&arms[backArm]);
+	schedulerAddTask(armEastward, &arms[rightArm], 2000, 0);
+	schedulerAddTask(armNorthward, &arms[rightArm], 4000, 0);
+	schedulerAddTask(armWestward, &arms[rightArm], 6000, 0);
 }
